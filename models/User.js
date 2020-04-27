@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const passportLocalMongoose = require("passport-local-mongoose");
+const joi = require("@hapi/joi");
 const bcrypt = require("bcryptjs");
 
 const userSchema = mongoose.Schema({
@@ -22,6 +23,21 @@ const userSchema = mongoose.Schema({
   }
 });
 userSchema.plugin(passportLocalMongoose);
+
+userSchema.statics.checkValidation = async (data) => {
+  const schema = joi.object({
+    username: joi.string().email(),
+
+    password: joi.string()
+      .pattern(new RegExp('^[a-zA-Z0-9]{3,30}$'))
+  });
+
+  const { error } = schema.validate(data);
+  if (error) {
+    throw new Error("Password or email is not valid");
+  }
+}
+
 userSchema.pre("save", async function (next) {
   const user = this;
   if (user.isModified("password")) {

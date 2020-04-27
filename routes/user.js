@@ -1,6 +1,5 @@
 const express = require("express");
 const User = require("../models/User");
-const { checkValidation } = require('../models/validate');
 
 const router = express.Router();
 
@@ -19,20 +18,19 @@ router.get("/login", (req, res) => {
 });
 
 router.post("/register", async (req, res) => {
-  const { error } = checkValidation(req.body);
-  if (error) {
-    req.flash("error", "Password or Email is not valid");
-    res.redirect("/register");
-  }
-  const user = new User(req.body);
   try {
+    await User.checkValidation(req.body);
+    const user = new User(req.body);
     await user.save();
-    req.flash("success", "Welcome you can now login to your account");
+    req.flash("success", "You can now log-In");
     res.redirect("/login");
-  } catch (e) {
-    req.flash("error", e.errors.password.message);
+  } catch(e) {
+    req.flash("error", e.message);
     res.redirect("/register");
   }
 });
 
+router.post("/login", (req, res) => {
+ 
+});
 module.exports = router;
